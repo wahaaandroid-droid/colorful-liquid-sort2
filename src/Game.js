@@ -162,16 +162,14 @@ export class Game {
   }
 
   _fitRendererToCanvas() {
-    const rect = this.canvas.getBoundingClientRect();
-    const vv = window.visualViewport;
-    const vw = Math.max(2, Math.floor(vv?.width ?? window.innerWidth));
-    const vh = Math.max(2, Math.floor(vv?.height ?? window.innerHeight));
-    let w = Math.floor(rect.width);
-    let h = Math.floor(rect.height);
-    /* レイアウト未確定・親高さ 0 などで極小になるのを防ぐ */
+    const el = this.canvas;
+    /* レイキャストと一致させる: バッファ解像度 = 表示の client サイズ */
+    let w = Math.floor(el.clientWidth);
+    let h = Math.floor(el.clientHeight);
     if (w < 64 || h < 64) {
-      w = Math.max(vw, Math.floor(window.innerWidth));
-      h = Math.max(vh, Math.floor(window.innerHeight));
+      const vv = window.visualViewport;
+      w = Math.max(64, Math.floor(vv?.width ?? window.innerWidth));
+      h = Math.max(64, Math.floor(vv?.height ?? window.innerHeight));
     }
     w = Math.max(2, w);
     h = Math.max(2, h);
@@ -291,8 +289,10 @@ export class Game {
     this.audio.resume();
     if (this._stageBusy) return;
     const rect = this.canvas.getBoundingClientRect();
-    this.pointer.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
-    this.pointer.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+    const cw = Math.max(1, this.canvas.clientWidth);
+    const ch = Math.max(1, this.canvas.clientHeight);
+    this.pointer.x = ((ev.clientX - rect.left) / cw) * 2 - 1;
+    this.pointer.y = -((ev.clientY - rect.top) / ch) * 2 + 1;
     this.raycaster.setFromCamera(this.pointer, this.camera);
     const hits = this.raycaster.intersectObjects(this.tubes, true);
     if (hits.length === 0) return;

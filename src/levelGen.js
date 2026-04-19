@@ -30,7 +30,9 @@ export function fillSolvedAndShuffle(tubes, colorCount, capacity, shuffleSteps, 
     const col = new THREE.Color(palette[c]);
     tubes[c].liquidStack = [{ color: col, amount: capacity }];
   }
-  for (let s = 0; s < shuffleSteps; s++) {
+  /* 1 層ずつの注ぎにしたため、同程度の攪乱には回数を増やす */
+  const steps = Math.max(shuffleSteps * 2, 40);
+  for (let s = 0; s < steps; s++) {
     const pairs = listValidPours(tubes);
     if (pairs.length === 0) break;
     const pick = pairs[Math.floor(rng() * pairs.length)];

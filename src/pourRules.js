@@ -5,29 +5,29 @@ export function canPourAmount(src, dst) {
   if (src.totalAmount() <= 0) return 0;
   const space = dst.spaceLeft();
   if (space <= 0) return 0;
-  const top = src.topColor();
-  if (!top) return 0;
-  if (dst.totalAmount() > 0 && dst.topColor().getHex() !== top.getHex()) return 0;
-  return Math.min(space, src.topRunAmount());
+  if (src.liquidStack.length === 0) return 0;
+  const topSeg = src.liquidStack[src.liquidStack.length - 1];
+  if (dst.totalAmount() > 0) {
+    const dTop = dst.liquidStack[dst.liquidStack.length - 1];
+    if (!dTop.color.equals(topSeg.color)) return 0;
+  }
+  const pourable = topSeg.amount;
+  return Math.min(space, pourable);
 }
 
 export function applyPour(src, dst, amount) {
   if (amount <= 0) return;
-  const c = src.topColor()?.clone();
-  if (!c) return;
-  let rem = amount;
-  while (rem > 1e-6 && src.liquidStack.length > 0) {
-    const top = src.liquidStack[src.liquidStack.length - 1];
-    const take = Math.min(top.amount, rem);
-    top.amount -= take;
-    rem -= take;
-    if (top.amount <= 1e-6) src.liquidStack.pop();
-  }
-  const last = dst.liquidStack[dst.liquidStack.length - 1];
-  if (last && last.color.getHex() === c.getHex()) {
-    last.amount += amount;
+  if (src.liquidStack.length === 0) return;
+  const topSeg = src.liquidStack[src.liquidStack.length - 1];
+  const c = topSeg.color.clone();
+  const take = Math.min(amount, topSeg.amount);
+  topSeg.amount -= take;
+  if (topSeg.amount <= 1e-6) src.liquidStack.pop();
+  const last = dst.liquidStack.length ? dst.liquidStack[dst.liquidStack.length - 1] : null;
+  if (last && last.color.equals(c)) {
+    last.amount += take;
   } else {
-    dst.liquidStack.push({ color: c, amount });
+    dst.liquidStack.push({ color: c, amount: take });
   }
 }
 

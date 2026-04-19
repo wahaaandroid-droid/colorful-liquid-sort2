@@ -139,16 +139,10 @@ export class GlassTube extends THREE.Group {
     return this.liquidStack[this.liquidStack.length - 1].color.clone();
   }
 
-  /** 一番上から連続する同色の量 */
-  topRunAmount() {
+  /** 一番上の「1 層」だけの量（ゲームルール: 上の液体ブロックのみ移動） */
+  topSegmentAmount() {
     if (this.liquidStack.length === 0) return 0;
-    const c = this.liquidStack[this.liquidStack.length - 1].color.getHex();
-    let a = 0;
-    for (let i = this.liquidStack.length - 1; i >= 0; i--) {
-      if (this.liquidStack[i].color.getHex() !== c) break;
-      a += this.liquidStack[i].amount;
-    }
-    return a;
+    return this.liquidStack[this.liquidStack.length - 1].amount;
   }
 
   setLift(offset) {
