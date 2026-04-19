@@ -68,8 +68,8 @@ export class GlassTube extends THREE.Group {
           depthWrite: false,
         });
     this.glassMesh = new THREE.Mesh(glassGeo, glassMat);
-    this.glassMesh.castShadow = true;
-    this.glassMesh.receiveShadow = true;
+    this.glassMesh.castShadow = false;
+    this.glassMesh.receiveShadow = false;
     this.add(this.glassMesh);
 
     const liquidGeo = new THREE.CylinderGeometry(

@@ -21,12 +21,11 @@ export class Game {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMappingExposure = 1.45;
+    this.renderer.shadowMap.enabled = false;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x0a0c10);
+    this.scene.background = new THREE.Color(0x101520);
 
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 500);
     this._lookZ = 0;
@@ -39,37 +38,25 @@ export class Game {
     this.envMap = null;
     this._setupEnvironment();
 
-    this.ambient = new THREE.AmbientLight(0xffffff, 0.42);
+    this.ambient = new THREE.AmbientLight(0xffffff, 0.62);
     this.scene.add(this.ambient);
-    const hemi = new THREE.HemisphereLight(0xc8d8f0, 0x1a1e28, 0.55);
+    const hemi = new THREE.HemisphereLight(0xd8e6ff, 0x1e2430, 0.72);
     hemi.position.set(0, 1, 0);
     this.scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xfff5ee, 1.25);
+    const key = new THREE.DirectionalLight(0xfff5ee, 1.55);
     key.position.set(3.5, 10, 4);
-    key.castShadow = true;
-    key.shadow.mapSize.set(2048, 2048);
-    key.shadow.camera.near = 0.5;
-    key.shadow.camera.far = 80;
-    key.shadow.camera.left = -18;
-    key.shadow.camera.right = 18;
-    key.shadow.camera.top = 18;
-    key.shadow.camera.bottom = -18;
+    key.castShadow = false;
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0xdde6ff, 0.45);
+    const rim = new THREE.DirectionalLight(0xdde6ff, 0.65);
     rim.position.set(-5, 6, -6);
     this.scene.add(rim);
 
     this.runway = new THREE.Mesh(
       new THREE.PlaneGeometry(56, 56),
-      new THREE.MeshStandardMaterial({
-        color: 0x151a22,
-        metalness: 0.08,
-        roughness: 0.96,
-      }),
+      new THREE.MeshBasicMaterial({ color: 0x2a3344 }),
     );
     this.runway.rotation.x = -Math.PI / 2;
     this.runway.position.set(0, 0.002, 0);
-    this.runway.receiveShadow = true;
     this.scene.add(this.runway);
 
     this.clearCount = 0;
@@ -129,7 +116,8 @@ export class Game {
       const env = new RoomEnvironment();
       const rt = pmrem.fromScene(env, 0.04);
       this.envMap = rt.texture;
-      this.scene.environment = this.envMap;
+      /* シーン全体の IBL は暗く潰れやすいので、ガラス等の material.envMap のみ利用 */
+      this.scene.environment = null;
       pmrem.dispose();
       env.dispose();
     } catch (err) {

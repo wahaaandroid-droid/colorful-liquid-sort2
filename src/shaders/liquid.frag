@@ -31,7 +31,7 @@ void main() {
   vec3 radialVec = (p - uAxisBottom) - axis * dot(p - uAxisBottom, axis);
   float radial = length(radialVec);
 
-  if (radial > uRadius - 1e-4) discard;
+  if (radial > uRadius + 0.02) discard;
   if (t < 0.002 || t > 0.998) discard;
   if (p.y > uSurfaceY + 1e-4) discard;
   if (t < uTFloor) discard;
@@ -56,7 +56,7 @@ void main() {
   float fresnel = pow(1.0 - NdotV, 3.0);
 
   vec3 diffuse = baseColor * (uAmbient + uLightColor * NdotL);
-  vec3 emissive = baseColor * 0.08;
+  vec3 emissive = baseColor * 0.22;
   vec3 spec = uLightColor * pow(saturate(dot(reflect(normalize(uLightDir), N), V)), 48.0) * 0.35;
 
   float alpha = 0.78 + fresnel * 0.18;
