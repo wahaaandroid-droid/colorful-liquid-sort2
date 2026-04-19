@@ -39,8 +39,11 @@ export class Game {
     this.envMap = null;
     this._setupEnvironment();
 
-    this.ambient = new THREE.AmbientLight(0xffffff, 0.35);
+    this.ambient = new THREE.AmbientLight(0xffffff, 0.42);
     this.scene.add(this.ambient);
+    const hemi = new THREE.HemisphereLight(0xc8d8f0, 0x1a1e28, 0.55);
+    hemi.position.set(0, 1, 0);
+    this.scene.add(hemi);
     const key = new THREE.DirectionalLight(0xfff5ee, 1.25);
     key.position.set(3.5, 10, 4);
     key.castShadow = true;
@@ -57,15 +60,15 @@ export class Game {
     this.scene.add(rim);
 
     this.runway = new THREE.Mesh(
-      new THREE.PlaneGeometry(32, 420),
+      new THREE.PlaneGeometry(56, 56),
       new THREE.MeshStandardMaterial({
-        color: 0x12151c,
-        metalness: 0.12,
-        roughness: 0.94,
+        color: 0x151a22,
+        metalness: 0.08,
+        roughness: 0.96,
       }),
     );
     this.runway.rotation.x = -Math.PI / 2;
-    this.runway.position.set(0, 0.002, 165);
+    this.runway.position.set(0, 0.002, 0);
     this.runway.receiveShadow = true;
     this.scene.add(this.runway);
 
@@ -118,14 +121,22 @@ export class Game {
   }
 
   _setupEnvironment() {
-    const pmrem = new THREE.PMREMGenerator(this.renderer);
-    pmrem.compileEquirectangularShader();
-    const env = new RoomEnvironment();
-    const rt = pmrem.fromScene(env, 0.04);
-    this.envMap = rt.texture;
-    this.scene.environment = this.envMap;
-    pmrem.dispose();
-    env.dispose();
+    this.envMap = null;
+    this.scene.environment = null;
+    try {
+      const pmrem = new THREE.PMREMGenerator(this.renderer);
+      pmrem.compileEquirectangularShader();
+      const env = new RoomEnvironment();
+      const rt = pmrem.fromScene(env, 0.04);
+      this.envMap = rt.texture;
+      this.scene.environment = this.envMap;
+      pmrem.dispose();
+      env.dispose();
+    } catch (err) {
+      console.warn('[Game] PMREM / RoomEnvironment failed; using fallback lighting.', err);
+      this.envMap = null;
+      this.scene.environment = null;
+    }
   }
 
   _spawnInitialSegment() {

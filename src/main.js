@@ -5,7 +5,16 @@ function boot() {
   if (!canvas) {
     throw new Error('canvas #c not found');
   }
-  new Game(canvas);
+  try {
+    new Game(canvas);
+  } catch (err) {
+    console.error(err);
+    const st = document.getElementById('status');
+    if (st) {
+      st.textContent =
+        err instanceof Error ? `初期化エラー: ${err.message}` : '初期化に失敗しました。コンソールを確認してください。';
+    }
+  }
 }
 
 if (document.readyState === 'loading') {

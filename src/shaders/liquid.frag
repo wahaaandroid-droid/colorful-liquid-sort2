@@ -39,16 +39,15 @@ void main() {
 
   float span = max(uTSurface - uTFloor, 1e-4);
   float tn = (t - uTFloor) / span;
-  vec3 baseColor = vec3(0.35, 0.55, 0.95);
-  float layerW = 1.0 / float(max(uLayerCount, 1));
-  for (int i = 0; i < MAX_LAYERS; i++) {
-    if (i >= uLayerCount) break;
-    float end = uLayerEndT[i];
-    if (tn <= end + 1e-5) {
-      baseColor = uColors[i];
-      break;
-    }
-  }
+  vec3 baseColor = uColors[0];
+  if (uLayerCount > 0 && tn <= uLayerEndT[0]) baseColor = uColors[0];
+  else if (uLayerCount > 1 && tn <= uLayerEndT[1]) baseColor = uColors[1];
+  else if (uLayerCount > 2 && tn <= uLayerEndT[2]) baseColor = uColors[2];
+  else if (uLayerCount > 3 && tn <= uLayerEndT[3]) baseColor = uColors[3];
+  else if (uLayerCount > 4 && tn <= uLayerEndT[4]) baseColor = uColors[4];
+  else if (uLayerCount > 5 && tn <= uLayerEndT[5]) baseColor = uColors[5];
+  else if (uLayerCount > 6 && tn <= uLayerEndT[6]) baseColor = uColors[6];
+  else if (uLayerCount > 7 && tn <= uLayerEndT[7]) baseColor = uColors[7];
 
   vec3 N = normalize(vObjectNormal);
   vec3 V = normalize(uCameraPosition - p);

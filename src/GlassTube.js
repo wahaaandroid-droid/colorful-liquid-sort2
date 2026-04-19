@@ -36,20 +36,37 @@ export class GlassTube extends THREE.Group {
       1,
       false,
     );
-    const glassMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0,
-      roughness: 0.08,
-      transmission: 1,
-      thickness: this.radius * 0.45,
-      ior: 1.45,
-      transparent: true,
-      opacity: 0.35,
-      envMap: this.envMap,
-      envMapIntensity: 1.1,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    });
+    const glassMat = this.envMap
+      ? new THREE.MeshPhysicalMaterial({
+          color: 0xffffff,
+          metalness: 0,
+          roughness: 0.08,
+          transmission: 1,
+          thickness: this.radius * 0.45,
+          ior: 1.45,
+          transparent: true,
+          opacity: 0.35,
+          envMap: this.envMap,
+          envMapIntensity: 1.1,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        })
+      : new THREE.MeshPhysicalMaterial({
+          color: 0xe8f2ff,
+          metalness: 0.02,
+          roughness: 0.18,
+          transmission: 0.35,
+          thickness: this.radius * 0.35,
+          ior: 1.45,
+          transparent: true,
+          opacity: 0.55,
+          envMap: null,
+          envMapIntensity: 0,
+          clearcoat: 0.35,
+          clearcoatRoughness: 0.2,
+          side: THREE.DoubleSide,
+          depthWrite: false,
+        });
     this.glassMesh = new THREE.Mesh(glassGeo, glassMat);
     this.glassMesh.castShadow = true;
     this.glassMesh.receiveShadow = true;
@@ -80,7 +97,7 @@ export class GlassTube extends THREE.Group {
       uColors: { value: layerColors },
       uLayerEndT: { value: layerEnds },
       uCameraPosition: { value: new THREE.Vector3() },
-      uAmbient: { value: new THREE.Vector3(0.08, 0.1, 0.14) },
+      uAmbient: { value: new THREE.Vector3(0.12, 0.14, 0.18) },
       uLightDir: { value: new THREE.Vector3(0.35, 1, 0.25).normalize() },
       uLightColor: { value: new THREE.Vector3(1, 0.98, 0.94) },
     };
@@ -97,13 +114,21 @@ export class GlassTube extends THREE.Group {
     this.add(this.liquidMesh);
 
     const rimGeo = new THREE.TorusGeometry(this.radius * 1.01, this.radius * 0.035, 12, 48);
-    const rimMat = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      metalness: 0.9,
-      roughness: 0.2,
-      envMap: this.envMap,
-      envMapIntensity: 1,
-    });
+    const rimMat = this.envMap
+      ? new THREE.MeshPhysicalMaterial({
+          color: 0xffffff,
+          metalness: 0.9,
+          roughness: 0.2,
+          envMap: this.envMap,
+          envMapIntensity: 1,
+        })
+      : new THREE.MeshPhysicalMaterial({
+          color: 0xdde8ff,
+          metalness: 0.65,
+          roughness: 0.28,
+          envMap: null,
+          envMapIntensity: 0,
+        });
     this.rimMesh = new THREE.Mesh(rimGeo, rimMat);
     this.rimMesh.rotation.x = Math.PI / 2;
     this.rimMesh.position.y = this.height / 2;
