@@ -17,10 +17,9 @@ export class Game {
       canvas,
       antialias: true,
       alpha: false,
-      powerPreference: 'high-performance',
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight, false);
+    this._fitRendererToCanvas();
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
@@ -96,6 +95,15 @@ export class Game {
     window.addEventListener('resize', this._onResize);
     this._onResize();
 
+    if (typeof ResizeObserver !== 'undefined') {
+      this._resizeObserver = new ResizeObserver(() => this._onResize());
+      this._resizeObserver.observe(this.canvas);
+    }
+
+    requestAnimationFrame(() => {
+      this._onResize();
+    });
+
     this._clock = new THREE.Clock();
     this._loop = this._loop.bind(this);
     requestAnimationFrame(this._loop);
@@ -135,9 +143,23 @@ export class Game {
     this.tubes = this.activeSegment.tubes;
   }
 
+  _fitRendererToCanvas() {
+    const rect = this.canvas.getBoundingClientRect();
+    let w = Math.floor(rect.width);
+    let h = Math.floor(rect.height);
+    if (w < 2) w = Math.floor(window.innerWidth);
+    if (h < 2) h = Math.floor(window.innerHeight);
+    w = Math.max(2, w);
+    h = Math.max(2, h);
+    this.renderer.setSize(w, h, false);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+  }
+
   dispose() {
     window.removeEventListener('pointerdown', this._onPointer);
     window.removeEventListener('resize', this._onResize);
+    this._resizeObserver?.disconnect();
     if (this.activeSegment) {
       this.activeSegment.dispose();
       this.activeSegment = null;
@@ -151,11 +173,7 @@ export class Game {
   }
 
   _onResize() {
-    const w = this.canvas.clientWidth;
-    const h = this.canvas.clientHeight;
-    this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / Math.max(h, 1);
-    this.camera.updateProjectionMatrix();
+    this._fitRendererToCanvas();
   }
 
   _setStatus(t) {
