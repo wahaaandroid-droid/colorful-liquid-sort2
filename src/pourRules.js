@@ -16,25 +16,25 @@ export function applyPour(src, dst, amount) {
   const c = src.topColor()?.clone();
   if (!c) return;
   let rem = amount;
-  while (rem > 1e-6 && src.layers.length > 0) {
-    const top = src.layers[src.layers.length - 1];
+  while (rem > 1e-6 && src.liquidStack.length > 0) {
+    const top = src.liquidStack[src.liquidStack.length - 1];
     const take = Math.min(top.amount, rem);
     top.amount -= take;
     rem -= take;
-    if (top.amount <= 1e-6) src.layers.pop();
+    if (top.amount <= 1e-6) src.liquidStack.pop();
   }
-  const last = dst.layers[dst.layers.length - 1];
+  const last = dst.liquidStack[dst.liquidStack.length - 1];
   if (last && last.color.getHex() === c.getHex()) {
     last.amount += amount;
   } else {
-    dst.layers.push({ color: c, amount });
+    dst.liquidStack.push({ color: c, amount });
   }
 }
 
 export function isTubeSorted(tube) {
   if (tube.totalAmount() === 0) return true;
-  if (tube.layers.length !== 1) return false;
-  return tube.layers[0].amount >= tube.capacity - 1e-6;
+  if (tube.liquidStack.length !== 1) return false;
+  return tube.liquidStack[0].amount >= tube.capacity - 1e-6;
 }
 
 /** @param {import('./GlassTube.js').GlassTube[]} tubes */

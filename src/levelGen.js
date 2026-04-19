@@ -25,10 +25,10 @@ export function difficultyParams(clearCount) {
  */
 export function fillSolvedAndShuffle(tubes, colorCount, capacity, shuffleSteps, rng = Math.random) {
   const palette = PALETTE.slice(0, colorCount);
-  for (let i = 0; i < tubes.length; i++) tubes[i].layers = [];
+  for (let i = 0; i < tubes.length; i++) tubes[i].liquidStack = [];
   for (let c = 0; c < colorCount; c++) {
     const col = new THREE.Color(palette[c]);
-    tubes[c].layers = [{ color: col, amount: capacity }];
+    tubes[c].liquidStack = [{ color: col, amount: capacity }];
   }
   for (let s = 0; s < shuffleSteps; s++) {
     const pairs = listValidPours(tubes);

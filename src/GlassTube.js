@@ -21,8 +21,9 @@ export class GlassTube extends THREE.Group {
     this.capacity = opts.capacity;
     this.envMap = opts.envMap ?? null;
 
-    /** @type {{ color: THREE.Color; amount: number }[]} 下から上 */
-    this.layers = [];
+    /** 液体の層（下→上）。`layers` は Object3D のレイヤーマスクで予約済みのため使わない */
+    /** @type {{ color: THREE.Color; amount: number }[]} */
+    this.liquidStack = [];
 
     this._baseY = 0;
     this._lift = 0;
@@ -123,7 +124,7 @@ export class GlassTube extends THREE.Group {
   /** 現在の液体ユニット合計 */
   totalAmount() {
     let s = 0;
-    for (const L of this.layers) s += L.amount;
+    for (const L of this.liquidStack) s += L.amount;
     return s;
   }
 
@@ -134,18 +135,18 @@ export class GlassTube extends THREE.Group {
 
   /** 一番上の層の色（無ければ null） */
   topColor() {
-    if (this.layers.length === 0) return null;
-    return this.layers[this.layers.length - 1].color.clone();
+    if (this.liquidStack.length === 0) return null;
+    return this.liquidStack[this.liquidStack.length - 1].color.clone();
   }
 
   /** 一番上から連続する同色の量 */
   topRunAmount() {
-    if (this.layers.length === 0) return 0;
-    const c = this.layers[this.layers.length - 1].color.getHex();
+    if (this.liquidStack.length === 0) return 0;
+    const c = this.liquidStack[this.liquidStack.length - 1].color.getHex();
     let a = 0;
-    for (let i = this.layers.length - 1; i >= 0; i--) {
-      if (this.layers[i].color.getHex() !== c) break;
-      a += this.layers[i].amount;
+    for (let i = this.liquidStack.length - 1; i >= 0; i--) {
+      if (this.liquidStack[i].color.getHex() !== c) break;
+      a += this.liquidStack[i].amount;
     }
     return a;
   }
@@ -205,11 +206,11 @@ export class GlassTube extends THREE.Group {
     const uColors = this.liquidUniforms.uColors.value;
     const uEnds = this.liquidUniforms.uLayerEndT.value;
     let acc = 0;
-    const n = Math.min(this.layers.length, MAX_LAYERS);
+    const n = Math.min(this.liquidStack.length, MAX_LAYERS);
     this.liquidUniforms.uLayerCount.value = n;
     for (let i = 0; i < MAX_LAYERS; i++) {
       if (i < n) {
-        const L = this.layers[i];
+        const L = this.liquidStack[i];
         acc += L.amount / Math.max(total, 1e-4);
         uColors[i].set(L.color.r, L.color.g, L.color.b);
         uEnds[i] = acc;
@@ -228,10 +229,10 @@ export class GlassTube extends THREE.Group {
    */
   updateLiquidShaderWithTotal(camera, visualTotal, pour = null) {
     const tmp = this._buildDisplayLayers(visualTotal, pour);
-    const prev = this.layers;
-    this.layers = tmp;
+    const prev = this.liquidStack;
+    this.liquidStack = tmp;
     this.updateLiquidShader(camera);
-    this.layers = prev;
+    this.liquidStack = prev;
   }
 
   /**
@@ -243,8 +244,8 @@ export class GlassTube extends THREE.Group {
     const vt = THREE.MathUtils.clamp(visualTotal, 0, cap);
     const out = [];
     let acc = 0;
-    for (let i = 0; i < this.layers.length; i++) {
-      const L = this.layers[i];
+    for (let i = 0; i < this.liquidStack.length; i++) {
+      const L = this.liquidStack[i];
       const next = acc + L.amount;
       if (next <= vt + 1e-6) {
         out.push({ color: L.color.clone(), amount: L.amount });
