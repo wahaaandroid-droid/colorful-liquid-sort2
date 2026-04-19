@@ -19,7 +19,6 @@ export class Game {
       alpha: false,
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this._fitRendererToCanvas();
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
@@ -31,6 +30,7 @@ export class Game {
 
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 500);
     this._lookZ = 0;
+    this._fitRendererToCanvas();
     this._applyCamera();
 
     this.raycaster = new THREE.Raycaster();
@@ -163,8 +163,10 @@ export class Game {
     w = Math.max(2, w);
     h = Math.max(2, h);
     this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
+    if (this.camera) {
+      this.camera.aspect = w / h;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   dispose() {
