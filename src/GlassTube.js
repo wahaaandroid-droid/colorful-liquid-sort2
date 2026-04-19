@@ -36,37 +36,18 @@ export class GlassTube extends THREE.Group {
       1,
       false,
     );
-    const glassMat = this.envMap
-      ? new THREE.MeshPhysicalMaterial({
-          color: 0xffffff,
-          metalness: 0,
-          roughness: 0.08,
-          transmission: 1,
-          thickness: this.radius * 0.45,
-          ior: 1.45,
-          transparent: true,
-          opacity: 0.35,
-          envMap: this.envMap,
-          envMapIntensity: 1.1,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        })
-      : new THREE.MeshPhysicalMaterial({
-          color: 0xe8f2ff,
-          metalness: 0.02,
-          roughness: 0.18,
-          transmission: 0.35,
-          thickness: this.radius * 0.35,
-          ior: 1.45,
-          transparent: true,
-          opacity: 0.55,
-          envMap: null,
-          envMapIntensity: 0,
-          clearcoat: 0.35,
-          clearcoatRoughness: 0.2,
-          side: THREE.DoubleSide,
-          depthWrite: false,
-        });
+    /* transmission は環境・トーン・描画順の組み合わせで真っ黒になりやすいため Standard で安定表示 */
+    const glassMat = new THREE.MeshStandardMaterial({
+      color: 0xe8f4ff,
+      transparent: true,
+      opacity: this.envMap ? 0.4 : 0.48,
+      roughness: 0.22,
+      metalness: 0.06,
+      envMap: this.envMap,
+      envMapIntensity: this.envMap ? 0.75 : 0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
     this.glassMesh = new THREE.Mesh(glassGeo, glassMat);
     this.glassMesh.castShadow = false;
     this.glassMesh.receiveShadow = false;
@@ -114,21 +95,13 @@ export class GlassTube extends THREE.Group {
     this.add(this.liquidMesh);
 
     const rimGeo = new THREE.TorusGeometry(this.radius * 1.01, this.radius * 0.035, 12, 48);
-    const rimMat = this.envMap
-      ? new THREE.MeshPhysicalMaterial({
-          color: 0xffffff,
-          metalness: 0.9,
-          roughness: 0.2,
-          envMap: this.envMap,
-          envMapIntensity: 1,
-        })
-      : new THREE.MeshPhysicalMaterial({
-          color: 0xdde8ff,
-          metalness: 0.65,
-          roughness: 0.28,
-          envMap: null,
-          envMapIntensity: 0,
-        });
+    const rimMat = new THREE.MeshStandardMaterial({
+      color: 0xf2f6ff,
+      roughness: 0.32,
+      metalness: 0.45,
+      envMap: this.envMap,
+      envMapIntensity: this.envMap ? 0.65 : 0,
+    });
     this.rimMesh = new THREE.Mesh(rimGeo, rimMat);
     this.rimMesh.rotation.x = Math.PI / 2;
     this.rimMesh.position.y = this.height / 2;
@@ -305,14 +278,14 @@ export class GlassTube extends THREE.Group {
 export class PourStream extends THREE.Group {
   constructor() {
     super();
-    const mat = new THREE.MeshPhysicalMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       color: 0xa8d8ff,
       metalness: 0,
-      roughness: 0.25,
+      roughness: 0.35,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
       emissive: 0x224466,
-      emissiveIntensity: 0.35,
+      emissiveIntensity: 0.45,
       depthWrite: false,
     });
     this.material = mat;

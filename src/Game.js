@@ -12,6 +12,8 @@ const CAM_Z_OFFSET = 8.4;
 export class Game {
   constructor(canvas) {
     this.canvas = canvas;
+    /** @type {THREE.GridHelper | null} */
+    this.gridHelper = null;
     this.audio = new AudioSynth();
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -20,12 +22,13 @@ export class Game {
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.45;
+    /* ACES は暗環境＋Standard 組み合わせで潰れやすいため、まずは線形で確実に見えるように */
+    this.renderer.toneMapping = THREE.NoToneMapping;
+    this.renderer.toneMappingExposure = 1;
     this.renderer.shadowMap.enabled = false;
 
     this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(0x101520);
+    this.scene.background = new THREE.Color(0x1a2a3d);
 
     this.camera = new THREE.PerspectiveCamera(42, 1, 0.1, 500);
     this._lookZ = 0;
@@ -51,17 +54,22 @@ export class Game {
     rim.position.set(-5, 6, -6);
     this.scene.add(rim);
 
+    /* 薄いボックスなら上面法線が +Y で、斜め上カメラから常に表が見える */
     this.runway = new THREE.Mesh(
-      new THREE.PlaneGeometry(56, 56),
-      new THREE.MeshBasicMaterial({
-        color: 0x2a3344,
-        /* 上から見るカメラでは、XZ 水平化後の「上向き法線」側が裏面扱いになるため両面描画 */
-        side: THREE.DoubleSide,
+      new THREE.BoxGeometry(72, 0.06, 72),
+      new THREE.MeshStandardMaterial({
+        color: 0x3a4a5e,
+        roughness: 0.92,
+        metalness: 0.04,
       }),
     );
-    this.runway.rotation.x = -Math.PI / 2;
-    this.runway.position.set(0, 0.002, 0);
+    this.runway.position.set(0, 0.03, 0);
+    this.runway.receiveShadow = false;
     this.scene.add(this.runway);
+
+    this.gridHelper = new THREE.GridHelper(48, 24, 0x5a6a80, 0x2a3544);
+    this.gridHelper.position.set(0, 0.07, 0);
+    this.scene.add(this.gridHelper);
 
     this.clearCount = 0;
     /** @type {StageSegment | null} */
@@ -190,6 +198,14 @@ export class Game {
     this.runway.geometry.dispose();
     this.runway.material.dispose();
     this.scene.remove(this.runway);
+    if (this.gridHelper) {
+      this.gridHelper.geometry.dispose();
+      const gm = this.gridHelper.material;
+      if (Array.isArray(gm)) for (const m of gm) m.dispose();
+      else gm.dispose();
+      this.scene.remove(this.gridHelper);
+      this.gridHelper = null;
+    }
     this.stream.dispose();
     this.renderer.dispose();
   }
