@@ -53,7 +53,11 @@ export class Game {
 
     this.runway = new THREE.Mesh(
       new THREE.PlaneGeometry(56, 56),
-      new THREE.MeshBasicMaterial({ color: 0x2a3344 }),
+      new THREE.MeshBasicMaterial({
+        color: 0x2a3344,
+        /* 上から見るカメラでは、XZ 水平化後の「上向き法線」側が裏面扱いになるため両面描画 */
+        side: THREE.DoubleSide,
+      }),
     );
     this.runway.rotation.x = -Math.PI / 2;
     this.runway.position.set(0, 0.002, 0);
@@ -78,6 +82,9 @@ export class Game {
     this._pourA = null;
     /** @type {GlassTube | null} */
     this._pourB = null;
+
+    /** @type {number} */
+    this._bootResizeFrames = 0;
 
     this._onPointer = this._onPointer.bind(this);
     this._onResize = this._onResize.bind(this);
@@ -397,6 +404,10 @@ export class Game {
 
   _loop() {
     requestAnimationFrame(this._loop);
+    if (this._bootResizeFrames < 8) {
+      this._bootResizeFrames++;
+      this._onResize();
+    }
     this._clock.getDelta();
     const skip = (t) => this._pouring && (t === this._pourA || t === this._pourB);
     for (const t of this.tubes) {
