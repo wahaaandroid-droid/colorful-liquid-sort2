@@ -83,6 +83,10 @@ export class Game {
     this._onResize = this._onResize.bind(this);
     window.addEventListener('pointerdown', this._onPointer);
     window.addEventListener('resize', this._onResize);
+    window.addEventListener('orientationchange', this._onResize);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this._onResize);
+    }
     this._onResize();
 
     if (typeof ResizeObserver !== 'undefined') {
@@ -144,10 +148,16 @@ export class Game {
 
   _fitRendererToCanvas() {
     const rect = this.canvas.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vw = Math.max(2, Math.floor(vv?.width ?? window.innerWidth));
+    const vh = Math.max(2, Math.floor(vv?.height ?? window.innerHeight));
     let w = Math.floor(rect.width);
     let h = Math.floor(rect.height);
-    if (w < 2) w = Math.floor(window.innerWidth);
-    if (h < 2) h = Math.floor(window.innerHeight);
+    /* レイアウト未確定・親高さ 0 などで極小になるのを防ぐ */
+    if (w < 64 || h < 64) {
+      w = Math.max(vw, Math.floor(window.innerWidth));
+      h = Math.max(vh, Math.floor(window.innerHeight));
+    }
     w = Math.max(2, w);
     h = Math.max(2, h);
     this.renderer.setSize(w, h, false);
@@ -160,6 +170,10 @@ export class Game {
   dispose() {
     window.removeEventListener('pointerdown', this._onPointer);
     window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('orientationchange', this._onResize);
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this._onResize);
+    }
     this._resizeObserver?.disconnect();
     if (this.activeSegment) {
       this.activeSegment.dispose();
